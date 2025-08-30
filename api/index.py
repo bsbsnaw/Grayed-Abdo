@@ -2,8 +2,7 @@ import logging
 import calendar
 from datetime import datetime, timedelta, date
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, \
-    ExtBot
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ExtBot
 import os
 import asyncio
 from flask import Flask, request
@@ -53,7 +52,6 @@ def remove_subscriber(chat_id):
     with open(SUBSCRIBERS_FILE, "w") as f:
         for sub_id in subscribers:
             f.write(f"{sub_id}\n")
-
 
 # --- كل دوال الواجهات وجلب الروابط تبقى كما هي ---
 def create_calendar(year, month, calendar_type):
@@ -116,40 +114,33 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text("أهلًا بك! اختر الجريدة وطريقة العرض:", reply_markup=reply_markup)
 
-
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     add_subscriber(chat_id)
     await update.message.reply_text("تم اشتراكك بنجاح!")
-
 
 async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     remove_subscriber(chat_id)
     await update.message.reply_text("تم إلغاء اشتراكك.")
 
-
 async def week_aawsat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("اختر يومًا من الأسبوع (الشرق الأوسط):",
                                     reply_markup=create_week_view(date.today(), "aawsat"))
 
-
 async def week_albayan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("اختر يومًا من الأسبوع (البيان):",
                                     reply_markup=create_week_view(date.today(), "albayan"))
-
 
 async def calendar_aawsat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     now = datetime.now()
     await update.message.reply_text("اختر تاريخًا (الشرق الأوسط):",
                                     reply_markup=create_calendar(now.year, now.month, "aawsat"))
 
-
 async def calendar_albayan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     now = datetime.now()
     await update.message.reply_text("اختر تاريخًا (البيان):",
                                     reply_markup=create_calendar(now.year, now.month, "albayan"))
-
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -187,12 +178,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if direction == "prev":
                 new_date = (current_date - timedelta(days=1)).replace(day=1)
             else:
-                last_day = calendar.monthrange(year, month)[1];
-                new_date = (
-                        current_date.replace(day=last_day) + timedelta(days=1))
+                last_day = calendar.monthrange(year, month)[1]; new_date = (
+                            current_date.replace(day=last_day) + timedelta(days=1))
             await query.edit_message_reply_markup(
                 reply_markup=create_calendar(new_date.year, new_date.month, calendar_type))
-
 
 # --- إعداد تطبيق البوت والمعالجات (Handlers) ---
 bot_instance = ExtBot(token=TOKEN)
@@ -208,21 +197,22 @@ application.add_handler(MessageHandler(filters.Regex("^التقويم \(الشر
 application.add_handler(MessageHandler(filters.Regex("^التقويم \(البيان\)$"), calendar_albayan))
 application.add_handler(CallbackQueryHandler(callback_handler))
 
+
 # --- إعداد خادم الويب (Flask) لاستقبال الـ Webhook ---
 # هذا هو الجزء الجديد الذي يجعل الكود يعمل على Vercel
 app = Flask(__name__)
 
-
-@app.route('/api/webhook', methods=['POST'])
+@app.route('/', methods=['POST']) # <<<=== تم التغيير هنا
 def webhook():
     """هذه الدالة تستقبل التحديثات من تليجرام وتعالجها"""
     update_data = request.get_json(force=True)
     update = Update.de_json(data=update_data, bot=bot_instance)
-
+    
     # نقوم بتشغيل معالجة التحديث بشكل غير متزامن
     asyncio.run(application.process_update(update))
-
+    
     return 'OK', 200
 
 # Vercel يبحث عن متغير اسمه 'app' لتشغيله كخادم ويب
 # لم نعد بحاجة إلى دالة main() أو application.run_polling()
+
