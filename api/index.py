@@ -118,15 +118,17 @@ application = Application.builder().bot(bot_instance).build()
 application.add_handler(CommandHandler('start', start))
 application.add_handler(CommandHandler('subscribe', subscribe))
 application.add_handler(CommandHandler('unsubscribe', unsubscribe))
-application.add_handler(MessageHandler(filters.Regex("^الأسبوع \(الشرق الأوسط\)$"), week_aawsat))
-application.add_handler(MessageHandler(filters.Regex("^الأسبوع \(البيان\)$"), week_albayan))
-application.add_handler(MessageHandler(filters.Regex("^التقويم \(الشرق الأوسط\)$"), calendar_aawsat))
-application.add_handler(MessageHandler(filters.Regex("^التقويم \(البيان\)$"), calendar_albayan))
+# v--v--v  هنا تم الإصلاح بإضافة حرف 'r'  v--v--v
+application.add_handler(MessageHandler(filters.Regex(r"^الأسبوع \(الشرق الأوسط\)$"), week_aawsat))
+application.add_handler(MessageHandler(filters.Regex(r"^الأسبوع \(البيان\)$"), week_albayan))
+application.add_handler(MessageHandler(filters.Regex(r"^التقويم \(الشرق الأوسط\)$"), calendar_aawsat))
+application.add_handler(MessageHandler(filters.Regex(r"^التقويم \(البيان\)$"), calendar_albayan))
+# ^--^--^------------------------------------^--^--^
 application.add_handler(CallbackQueryHandler(callback_handler))
 
 # --- إعداد خادم الويب (Flask) ---
 app = Flask(__name__)
-@app.route('/', methods=['POST']) # <<<=== هذا هو التعديل الوحيد والمهم
+@app.route('/', methods=['POST'])
 def webhook():
     update_data = request.get_json(force=True)
     update = Update.de_json(data=update_data, bot=bot_instance)
